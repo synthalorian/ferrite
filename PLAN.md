@@ -83,12 +83,15 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 5: Self-monitoring (memory, inode tracking)
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/monitor.nim`)
+- [x] Tests (`tests/test_monitor.nim`)
+- [x] Documentation update (`docs/phase5.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `readMemoryInfo`, `readFilesystemUsage`, `readCgroupMemoryStat`
+- DecayLog ring buffer for trend analysis (memoryTrend, inodeTrend)
+- Threshold checking: isMemoryCritical, isInodeCritical, isDiskCritical
+- Human-readable logging with logDecay and logResourceSnapshot
 
 ---
 

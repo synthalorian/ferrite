@@ -60,6 +60,7 @@ var
   gChildFn: ChildFn
   gChildCtx: pointer
   gChildReady: bool
+  gExecNss: set[Namespace]   # passed through clone for executeInNamespace
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -178,11 +179,14 @@ proc executeInNamespace*(nss: set[Namespace]; cmd: string;
   # Pack command + args into a single C-string array.
   var cargs = allocCStringArray(@[cmd] & @args)
 
+  # Use global slot to pass nss through clone (closure capture is illegal for noconv).
+  gExecNss = nss
+
   proc execChild(ctx: pointer): cint {.noconv.} =
     let argv = cast[cstringArray](ctx)
     # When running in a PID namespace we act as init (PID 1).
     # runAsInit forks the real command, forwards signals, and reaps zombies.
-    if nsPid in nss:
+    if nsPid in gExecNss:
       runAsInit(argv)
     else:
       discard execvp(cstring(argv[0]), argv)
@@ -191,6 +195,9 @@ proc executeInNamespace*(nss: set[Namespace]; cmd: string;
       127
 
   let pid = cloneIsolate(nss, execChild, cargs)
+
+  # Clear the global slot after clone returns
+  gExecNss = {}
 
   # Move child into cgroup immediately after clone
   if cgroupName.len > 0:
