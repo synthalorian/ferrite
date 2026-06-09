@@ -17,12 +17,14 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 1: Namespace isolation (clone, unshare)
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/namespaces.nim`)
+- [x] Tests (`tests/test_namespaces.nim`)
+- [x] Documentation update (`docs/phase1.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `cloneIsolate`, `unshareNamespaces`, `executeInNamespace`
+- Supports all standard Linux namespaces: mount, pid, net, uts, ipc, user, cgroup
+- CLI entry point at `src/ferrite.nim` with `run` subcommand 
 
 ---
 
@@ -31,12 +33,14 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 2: Root filesystem setup (pivot_root, overlayfs)
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/rootfs.nim`)
+- [x] Tests (`tests/test_rootfs.nim`)
+- [x] Documentation update (`docs/phase2.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `mountOverlay`, `umount`, `pivotRoot`, `prepareRootfs`, `teardownRootfs`, `runInRootfs`
+- CLI updated with `--root <path>` flag for overlayfs-backed containers
+- Syscall wrappers for mount(2), umount2(2), pivot_root(2), chdir(2), mkdir(2), rmdir(2) 
 
 ---
 
