@@ -49,12 +49,15 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 3: cgroups v2 resource control
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/cgroups.nim`)
+- [x] Tests (`tests/test_cgroups.nim`)
+- [x] Documentation update (`docs/phase3.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `setupCgroup`, `applyCgroup`, `cleanupCgroup`
+- Supports CPU (cpu.max), memory (memory.max), and PID (pids.max) limits
+- CLI updated with `--cpu <pct>`, `--mem <bytes>`, `--pids <n>` flags
+- Cgroup created before clone, child moved immediately after, cleaned up after waitpid 
 
 ---
 

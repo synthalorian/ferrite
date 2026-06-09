@@ -18,6 +18,9 @@ else:
 import namespaces
 export namespaces
 
+import cgroups
+export cgroups.CgroupLimits
+
 # ---------------------------------------------------------------------------
 # Constants — Linux syscall numbers (x86_64) and mount flags
 # ---------------------------------------------------------------------------
@@ -273,10 +276,14 @@ proc teardownRootfs*(mergedDir: string) {.discardable.} =
   discard rawRmdir(cstring(mergedDir))
 
 proc runInRootfs*(nss: set[Namespace]; rootfs: string;
-                  cmd: string; args: openArray[string] = []): cint =
+                  cmd: string; args: openArray[string] = [];
+                  cgroupName: string = ""): cint =
   ## High-level helper: clone into namespaces, set up rootfs via overlayfs +
   ## pivot_root, then execvp(cmd, args) in child.
   ## Blocks until the child exits. Returns the child's exit status.
+  ##
+  ## If `cgroupName` is provided, the child is moved into that cgroup after
+  ## cloning. The caller is responsible for cgroup cleanup.
   ##
   ## If `rootfs` points to a directory with "upper", "work", "merged"
   ## subdirectories, uses those directly. Otherwise creates them under
@@ -321,6 +328,10 @@ proc runInRootfs*(nss: set[Namespace]; rootfs: string;
     127
 
   let pid = cloneIsolate(nss, rootfsChild, cargv)
+
+  # Move child into cgroup immediately after clone
+  if cgroupName.len > 0:
+    discard moveProcessToCgroup(pid, cgroupName)
 
   gRootfsPath = ""
   gContainerDir = ""
