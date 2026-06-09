@@ -20,6 +20,7 @@ export namespaces
 
 import cgroups
 export cgroups.CgroupLimits
+import lifecycle
 
 # ---------------------------------------------------------------------------
 # Constants — Linux syscall numbers (x86_64) and mount flags
@@ -322,10 +323,13 @@ proc runInRootfs*(nss: set[Namespace]; rootfs: string;
       stderr.writeLine("ferrite: pivot_root failed: ", osErrorMsg(osLastError()))
       return 126
 
-    # 3. Exec the command
-    discard execvp(cstring(argv[0]), argv)
-    stderr.writeLine("ferrite: execvp failed: ", osErrorMsg(osLastError()))
-    127
+    # 3. Exec the command (or run as init if PID namespace is used)
+    if nsPid in nss:
+      runAsInit(argv)
+    else:
+      discard execvp(cstring(argv[0]), argv)
+      stderr.writeLine("ferrite: execvp failed: ", osErrorMsg(osLastError()))
+      127
 
   let pid = cloneIsolate(nss, rootfsChild, cargv)
 

@@ -5,3 +5,11 @@ htmldocs/
 *.dll
 *.so
 *.dylib
+
+# Compiled binaries (Nim doesn't add extensions on Linux)
+/ferrite
+/src/ferrite.out
+/tests/test_namespaces
+/tests/test_rootfs
+/tests/test_cgroups
+/tests/test_lifecycle

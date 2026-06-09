@@ -13,7 +13,7 @@
 - [x] **Phase 1**: Namespace isolation (`clone`, `unshare`) — `pid`, `net`, `mount`, `uts`, `ipc`, `user`
 - [x] **Phase 2**: Root filesystem setup (`pivot_root`, `overlayfs`)
 - [x] **Phase 3**: cgroups v2 resource limiting (`cpu`, `memory`, `pids`)
-- [ ] **Phase 4**: Process lifecycle management (init, reap)
+- [x] **Phase 4**: Process lifecycle management (init, reap)
 - [ ] **Phase 5**: Self-monitoring (memory fragmentation, inode exhaustion)
 - [ ] **Phase 6**: Graceful self-destruction at resource limits
 - [ ] **Phase 7**: CLI (`run`, `exec`, `kill`, `ps`)
