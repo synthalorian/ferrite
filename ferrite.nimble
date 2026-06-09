@@ -8,3 +8,11 @@ bin           = @["ferrite"]
 
 # Dependencies
 requires "nim >= 2.0.0"
+
+# Test task using testament
+proc runAllTests*() =
+  exec "nim c --path:src -r tests/test_namespaces.nim"
+  exec "nim c --path:src -r tests/test_rootfs.nim"
+
+task test, "Run all tests":
+  runAllTests()
