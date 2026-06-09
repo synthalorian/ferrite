@@ -16,7 +16,7 @@
 - [x] **Phase 4**: Process lifecycle management (init, reap)
 - [x] **Phase 5**: Self-monitoring (memory fragmentation, inode exhaustion)
 - [x] **Phase 6**: Graceful self-destruction at resource limits
-- [ ] **Phase 7**: CLI (`run`, `exec`, `kill`, `ps`)
+- [x] **Phase 7**: CLI (`run`, `exec`, `kill`, `ps`)
 - [ ] **Phase 8**: OCI runtime spec compatibility (partial)
 
 ---
@@ -83,6 +83,27 @@ When resource limits are specified, ferrite:
 2. Writes the requested limits (`cpu.max`, `memory.max`, `pids.max`)
 3. Moves the container process into the cgroup
 4. Cleans up the cgroup after the container exits
+
+### Phase 7 — CLI Commands
+
+ferrite now supports the full container lifecycle:
+
+```bash
+# Run a new container
+sudo ./ferrite run --root /var/lib/ferrite/images/alpine -- /bin/sh
+
+# Execute a command in a running container
+sudo ./ferrite exec ferrite-1234 -- /bin/hostname
+
+# Send a signal to a container
+sudo ./ferrite kill ferrite-1234
+sudo ./ferrite kill -s SIGKILL ferrite-1234
+
+# List running containers
+sudo ./ferrite ps
+```
+
+Containers are tracked in `/run/ferrite/` (or `/tmp/ferrite/` as fallback) with JSON state files. Container IDs can be specified with `--id` or auto-generated. The `exec` command uses `setns(2)` to enter the target container's namespaces.
 
 ---
 

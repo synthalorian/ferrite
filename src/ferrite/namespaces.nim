@@ -34,6 +34,7 @@ const
 
   SYS_UNSHARE          = 272
   SYS_SETHOSTNAME      = 170
+  SYS_SETNS            = 308
   SIGCHLD              = 17
 
 # ---------------------------------------------------------------------------
@@ -98,6 +99,13 @@ proc rawClone(flags: clong; stack: pointer): Pid =
 
 proc rawUnshare(flags: clong): cint =
   let rc = syscall3(SYS_UNSHARE, flags, 0, 0)
+  if rc < 0:
+    errno = cint(-rc)
+    return -1
+  0
+
+proc rawSetns(fd: cint; nstype: cint): cint =
+  let rc = syscall3(SYS_SETNS, fd.clong, nstype.clong, 0)
   if rc < 0:
     errno = cint(-rc)
     return -1
@@ -209,6 +217,69 @@ proc executeInNamespace*(nss: set[Namespace]; cmd: string;
     raiseOSError(osLastError())
 
   deallocCStringArray(cargs)
+
+  if WIFEXITED(status):
+    WEXITSTATUS(status)
+  elif WIFSIGNALED(status):
+    128 + WTERMSIG(status)
+  else:
+    -1
+
+proc enterNamespace*(ns: Namespace; targetPid: Pid): cint {.discardable.} =
+  ## Enter a namespace of `targetPid` by opening /proc/<pid>/ns/<type> and
+  ## calling setns(2). Returns 0 on success, -1 on error (check errno).
+  ##
+  ## Requires CAP_SYS_ADMIN (or the appropriate capability for the ns type).
+  let nsFile = case ns
+    of nsMount:  "/proc/" & $targetPid & "/ns/mnt"
+    of nsPid:    "/proc/" & $targetPid & "/ns/pid"
+    of nsNet:    "/proc/" & $targetPid & "/ns/net"
+    of nsUts:    "/proc/" & $targetPid & "/ns/uts"
+    of nsIpc:    "/proc/" & $targetPid & "/ns/ipc"
+    of nsUser:   "/proc/" & $targetPid & "/ns/user"
+    of nsCgroup: "/proc/" & $targetPid & "/ns/cgroup"
+
+  let fd = open(cstring(nsFile), O_RDONLY)
+  if fd < 0:
+    return -1
+  let rc = rawSetns(fd, toCloneFlag(ns))
+  discard close(fd)
+  rc
+
+proc execInNamespace*(targetPid: Pid; nss: set[Namespace];
+                      cmd: string; args: openArray[string] = []): cint =
+  ## Execute `cmd` inside the namespaces of `targetPid`.
+  ## Forks a child that enters the namespaces and then execvp's.
+  ## Blocks until the child exits. Returns child's exit status.
+  ##
+  ## Example:
+  ##   let rc = execInNamespace(1234, {nsNet, nsUts}, "/bin/hostname", ["new-host"])
+
+  var cargs = allocCStringArray(@[cmd] & @args)
+
+  let pid = fork()
+  if pid < 0:
+    deallocCStringArray(cargs)
+    stderr.writeLine("ferrite: fork failed: ", osErrorMsg(osLastError()))
+    return 127
+
+  if pid == 0:
+    # Child: enter each requested namespace, then exec
+    for ns in nss:
+      if enterNamespace(ns, targetPid) < 0:
+        stderr.writeLine("ferrite: setns failed for ", ns, ": ", osErrorMsg(osLastError()))
+        quit(126)
+
+    discard execvp(cstring(cargs[0]), cargs)
+    stderr.writeLine("ferrite: execvp failed: ", osErrorMsg(osLastError()))
+    quit(127)
+
+  # Parent: wait for child
+  deallocCStringArray(cargs)
+
+  var status: cint
+  if waitpid(pid, status, 0) < 0:
+    raiseOSError(osLastError())
 
   if WIFEXITED(status):
     WEXITSTATUS(status)
