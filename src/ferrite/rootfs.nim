@@ -233,6 +233,7 @@ proc pivotRoot*(newRoot: string): cint {.discardable.} =
 var
   gRootfsPath: string
   gContainerDir: string
+  gRunNss: set[Namespace]   # passed through clone for runInRootfs
 
 # ---------------------------------------------------------------------------
 # Public API — high-level
@@ -303,6 +304,7 @@ proc runInRootfs*(nss: set[Namespace]; rootfs: string;
 
   gRootfsPath = rootfs
   gContainerDir = containerDir
+  gRunNss = nss
 
   var argSeq: seq[string] = @[cmd] & @args
   var cargv = allocCStringArray(argSeq)
@@ -324,7 +326,7 @@ proc runInRootfs*(nss: set[Namespace]; rootfs: string;
       return 126
 
     # 3. Exec the command (or run as init if PID namespace is used)
-    if nsPid in nss:
+    if nsPid in gRunNss:
       runAsInit(argv)
     else:
       discard execvp(cstring(argv[0]), argv)
@@ -339,6 +341,7 @@ proc runInRootfs*(nss: set[Namespace]; rootfs: string;
 
   gRootfsPath = ""
   gContainerDir = ""
+  gRunNss = {}
 
   var status: cint
   if waitpid(pid, status, 0) < 0:
