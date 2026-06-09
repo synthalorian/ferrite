@@ -15,6 +15,7 @@ else:
   {.error: "ferrite requires Linux".}
 
 import cgroups
+import lifecycle
 
 # ---------------------------------------------------------------------------
 # Constants — Linux clone flags and syscall numbers (x86_64)
@@ -179,12 +180,15 @@ proc executeInNamespace*(nss: set[Namespace]; cmd: string;
 
   proc execChild(ctx: pointer): cint {.noconv.} =
     let argv = cast[cstringArray](ctx)
-    # In a real container we would set up the rootfs first (Phase 2).
-    # For Phase 1 we just exec directly.
-    discard execvp(cstring(argv[0]), argv)
-    # execvp only returns on error
-    stderr.writeLine("ferrite: execvp failed: ", osErrorMsg(osLastError()))
-    127
+    # When running in a PID namespace we act as init (PID 1).
+    # runAsInit forks the real command, forwards signals, and reaps zombies.
+    if nsPid in nss:
+      runAsInit(argv)
+    else:
+      discard execvp(cstring(argv[0]), argv)
+      # execvp only returns on error
+      stderr.writeLine("ferrite: execvp failed: ", osErrorMsg(osLastError()))
+      127
 
   let pid = cloneIsolate(nss, execChild, cargs)
 

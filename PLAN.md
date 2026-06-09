@@ -66,12 +66,15 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 4: Process lifecycle management (init, reap)
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/lifecycle.nim`)
+- [x] Tests (`tests/test_lifecycle.nim`)
+- [x] Documentation update (`docs/phase4.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `runAsInit` with signal forwarding (SIGTERM, SIGINT, SIGHUP, SIGUSR1, SIGUSR2)
+- Zombie reaping via waitpid(-1, WNOHANG) after main child exits
+- Integrated into `executeInNamespace` and `runInRootfs` when `nsPid` is in namespace set
+- Added `ContainerProcess` type with `startContainerInit` and `waitContainer` helpers
 
 ---
 
