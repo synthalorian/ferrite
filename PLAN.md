@@ -118,12 +118,15 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 7: CLI: run, exec, kill, ps
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/state.nim`, updated `src/ferrite.nim`)
+- [x] Tests (`tests/test_cli.nim`)
+- [x] Documentation update (`docs/phase7.md`, `README.md`)
 
 **Notes:**
-- 
+- Container state tracked in JSON files under `/run/ferrite/` (or `/tmp/ferrite/`)
+- `exec` uses `setns(2)` via `/proc/<pid>/ns/*` to enter container namespaces
+- `kill` supports numeric and named signals, resolves container by prefix
+- `ps` auto-cleans stale state files for dead processes
 
 ---
 
