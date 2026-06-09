@@ -15,3 +15,5 @@ htmldocs/
 /tests/test_lifecycle
 /tests/test_monitor
 /tests/test_destruction
+/tests/test_cli
+/tests/test_oci

@@ -17,7 +17,7 @@
 - [x] **Phase 5**: Self-monitoring (memory fragmentation, inode exhaustion)
 - [x] **Phase 6**: Graceful self-destruction at resource limits
 - [x] **Phase 7**: CLI (`run`, `exec`, `kill`, `ps`)
-- [ ] **Phase 8**: OCI runtime spec compatibility (partial)
+- [x] **Phase 8**: OCI runtime spec compatibility (partial)
 
 ---
 
@@ -104,6 +104,26 @@ sudo ./ferrite ps
 ```
 
 Containers are tracked in `/run/ferrite/` (or `/tmp/ferrite/` as fallback) with JSON state files. Container IDs can be specified with `--id` or auto-generated. The `exec` command uses `setns(2)` to enter the target container's namespaces.
+
+### Phase 8 — OCI Runtime Spec Compatibility
+
+ferrite now supports partial OCI runtime spec compatibility:
+
+```bash
+# Create a container from an OCI bundle
+sudo ./ferrite create mycontainer --bundle /path/to/bundle
+
+# Show OCI state
+sudo ./ferrite state mycontainer
+
+# Start the container
+sudo ./ferrite start mycontainer
+
+# Delete the container
+sudo ./ferrite delete mycontainer
+```
+
+An OCI bundle is a directory containing `config.json` (OCI runtime configuration) and `rootfs/` (container root filesystem). ferrite parses namespaces, resources, process args, and hostname from the OCI config.
 
 ---
 

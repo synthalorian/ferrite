@@ -18,6 +18,7 @@ proc runAllTests*() =
   exec "nim c --path:src -r tests/test_monitor.nim"
   exec "nim c --path:src -r tests/test_destruction.nim"
   exec "nim c --path:src -r tests/test_cli.nim"
+  exec "nim c --path:src -r tests/test_oci.nim"
 
 task test, "Run all tests":
   runAllTests()
