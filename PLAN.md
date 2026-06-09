@@ -100,12 +100,16 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 6: Graceful self-destruction protocol
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/destruction.nim`)
+- [x] Tests (`tests/test_destruction.nim`)
+- [x] Documentation update (`docs/phase6.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `DestructionConfig`, `SelfDestructor`, `checkAndDestroy`, `gracefulDestroy`, `immediateDestroy`
+- Supports graceful (SIGTERM → grace period → SIGKILL) and immediate (SIGKILL) modes
+- High-level `runMonitored` wrapper for fork + monitor + destroy lifecycle
+- Default thresholds: 95% for memory, inodes, disk; cgroup memory disabled by default
+- Integration with Phase 5 monitor module for sampling and trend logging 
 
 ---
 
