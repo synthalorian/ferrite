@@ -12,7 +12,7 @@
 
 - [x] **Phase 1**: Namespace isolation (`clone`, `unshare`) — `pid`, `net`, `mount`, `uts`, `ipc`, `user`
 - [x] **Phase 2**: Root filesystem setup (`pivot_root`, `overlayfs`)
-- [ ] **Phase 3**: cgroups v2 resource limiting (`cpu`, `memory`, `pids`)
+- [x] **Phase 3**: cgroups v2 resource limiting (`cpu`, `memory`, `pids`)
 - [ ] **Phase 4**: Process lifecycle management (init, reap)
 - [ ] **Phase 5**: Self-monitoring (memory fragmentation, inode exhaustion)
 - [ ] **Phase 6**: Graceful self-destruction at resource limits
@@ -65,11 +65,30 @@ ferrite will:
 
 The overlay layout is created automatically under `/tmp/ferrite-<pid>/`.
 
+### Phase 3 — cgroups v2 Resource Control
+
+Limit CPU, memory, and process count for containers:
+
+```bash
+# Limit CPU to 50% and memory to 128 MiB
+sudo ./ferrite run --cpu 50 --mem 134217728 -- /bin/sh
+
+# Combined with rootfs
+sudo ./ferrite run --root /var/lib/ferrite/images/alpine \
+                   --cpu 25 --mem 67108864 --pids 100 -- /bin/sh
+```
+
+When resource limits are specified, ferrite:
+1. Creates a cgroup under `/sys/fs/cgroup/ferrite-<pid>-<timestamp>/`
+2. Writes the requested limits (`cpu.max`, `memory.max`, `pids.max`)
+3. Moves the container process into the cgroup
+4. Cleans up the cgroup after the container exits
+
 ---
 
 ## Architecture
 
-See `PLAN.md`, `docs/phase1.md`, and `docs/phase2.md` for detailed architecture decisions.
+See `PLAN.md`, `docs/phase1.md`, `docs/phase2.md`, and `docs/phase3.md` for detailed architecture decisions.
 
 ---
 

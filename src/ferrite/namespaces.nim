@@ -14,6 +14,8 @@ when defined(linux):
 else:
   {.error: "ferrite requires Linux".}
 
+import cgroups
+
 # ---------------------------------------------------------------------------
 # Constants — Linux clone flags and syscall numbers (x86_64)
 # ---------------------------------------------------------------------------
@@ -161,9 +163,13 @@ proc cloneIsolate*(nss: set[Namespace]; fn: ChildFn; ctx: pointer = nil): Pid =
   pid
 
 proc executeInNamespace*(nss: set[Namespace]; cmd: string;
-                         args: openArray[string] = []): cint =
+                          args: openArray[string] = [];
+                          cgroupName: string = ""): cint =
   ## High-level helper: clone into namespaces, then execvp(cmd, args) in child.
   ## Blocks until the child exits.  Returns the child's exit status.
+  ##
+  ## If `cgroupName` is provided, the child is moved into that cgroup after
+  ## cloning. The caller is responsible for cgroup cleanup.
   ##
   ## Example:
   ##   let rc = executeInNamespace({nsPid, nsNet, nsMount}, "/bin/sh", ["-c", "hostname"])
@@ -181,6 +187,10 @@ proc executeInNamespace*(nss: set[Namespace]; cmd: string;
     127
 
   let pid = cloneIsolate(nss, execChild, cargs)
+
+  # Move child into cgroup immediately after clone
+  if cgroupName.len > 0:
+    discard moveProcessToCgroup(pid, cgroupName)
 
   var status: cint
   if waitpid(pid, status, 0) < 0:
