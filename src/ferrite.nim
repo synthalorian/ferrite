@@ -9,6 +9,7 @@ import ferrite/rootfs
 import ferrite/cgroups
 import ferrite/destruction
 import ferrite/state
+import ferrite/oci
 
 # ---------------------------------------------------------------------------
 # Usage helpers
@@ -16,17 +17,21 @@ import ferrite/state
 
 proc printUsage() =
   echo """
-ferrite — minimal container runtime (Phase 7: run, exec, kill, ps)
+ferrite — minimal container runtime (Phase 8: OCI compatibility)
 
 Usage:
   ferrite <command> [options...]
 
 Commands:
-  run   [options] -- <command> [args...]   Run a new container
-  exec  <container> -- <command> [args...] Execute in an existing container
-  kill  [-s <signal>] <container>          Send a signal to a container
+  run     [options] -- <command> [args...]   Run a new container
+  exec    <container> -- <command> [args...] Execute in an existing container
+  kill    [-s <signal>] <container>          Send a signal to a container
   ps                                       List running containers
-  help                                     Show this help
+  create  <id> --bundle <path>               Create container from OCI bundle
+  start    <id>                              Start a created container
+  state    <id>                              Show OCI state for a container
+  delete   <id>                              Delete a container
+  help                                       Show this help
 
 Run options:
   --ns <flags>                Comma-separated namespace list:
@@ -52,6 +57,12 @@ Kill options:
   -s <signal>                 Signal to send (default: SIGTERM).
                               Numeric or name: SIGKILL, SIGTERM, SIGINT, etc.
 
+OCI commands:
+  create <id> --bundle <path>  Create a container from an OCI bundle
+  start  <id>                  Start a previously created container
+  state  <id>                  Output OCI state JSON
+  delete <id>                  Delete a stopped container
+
 Examples:
   sudo ferrite run -- /bin/sh
   sudo ferrite run --root /path/to/rootfs -- /bin/sh
@@ -61,6 +72,10 @@ Examples:
   sudo ferrite kill ferrite-1234
   sudo ferrite kill -s SIGKILL ferrite-1234
   sudo ferrite ps
+  sudo ferrite create mycontainer --bundle /path/to/bundle
+  sudo ferrite start mycontainer
+  sudo ferrite state mycontainer
+  sudo ferrite delete mycontainer
 """
 
 proc printRunUsage() =
@@ -511,6 +526,110 @@ proc cmdPs() =
     echo formatContainerLine(state)
 
 # ---------------------------------------------------------------------------
+# OCI Commands
+# ---------------------------------------------------------------------------
+
+proc cmdCreate(args: seq[string]) =
+  if args.len < 1:
+    stderr.writeLine("ferrite: create requires a container ID")
+    quit(1)
+
+  var
+    id = ""
+    bundlePath = ""
+    idx = 0
+
+  while idx < args.len and args[idx].startsWith("-"):
+    case args[idx]
+    of "--bundle":
+      if idx + 1 >= args.len:
+        stderr.writeLine("ferrite: --bundle requires an argument")
+        quit(1)
+      bundlePath = args[idx + 1]
+      idx += 2
+    else:
+      stderr.writeLine("ferrite: unknown option: ", args[idx])
+      quit(1)
+
+  if idx >= args.len:
+    stderr.writeLine("ferrite: create requires a container ID")
+    quit(1)
+
+  id = args[idx]
+
+  if bundlePath.len == 0:
+    stderr.writeLine("ferrite: --bundle is required")
+    quit(1)
+
+  if getuid() != 0:
+    stderr.writeLine("ferrite: must run as root (or with CAP_SYS_ADMIN)")
+    quit(1)
+
+  # Validate bundle
+  let err = validateBundle(bundlePath)
+  if err.len > 0:
+    stderr.writeLine("ferrite: invalid bundle: ", err)
+    quit(1)
+
+  try:
+    ociCreate(id, bundlePath)
+    echo "ferrite: container ", id, " created"
+  except OciError as e:
+    stderr.writeLine("ferrite: create failed: ", e.msg)
+    quit(1)
+
+proc cmdStart(args: seq[string]) =
+  if args.len < 1:
+    stderr.writeLine("ferrite: start requires a container ID")
+    quit(1)
+
+  let id = args[0]
+
+  if getuid() != 0:
+    stderr.writeLine("ferrite: must run as root (or with CAP_SYS_ADMIN)")
+    quit(1)
+
+  echo "ferrite: starting container ", id, " ..."
+
+  var rc: cint
+  try:
+    rc = ociStart(id)
+  except OciError as e:
+    stderr.writeLine("ferrite: start failed: ", e.msg)
+    quit(1)
+
+  echo "ferrite: container ", id, " exited with code ", rc
+  quit(rc)
+
+proc cmdState(args: seq[string]) =
+  if args.len < 1:
+    stderr.writeLine("ferrite: state requires a container ID")
+    quit(1)
+
+  let id = args[0]
+
+  try:
+    let ostate = ociState(id)
+    echo $toJson(ostate)
+  except OciError as e:
+    stderr.writeLine("ferrite: state failed: ", e.msg)
+    quit(1)
+
+proc cmdDelete(args: seq[string]) =
+  if args.len < 1:
+    stderr.writeLine("ferrite: delete requires a container ID")
+    quit(1)
+
+  let id = args[0]
+
+  try:
+    ociDelete(id)
+    echo "ferrite: container ", id, " deleted"
+  except OciError as e:
+    stderr.writeLine("ferrite: delete failed: ", e.msg)
+    quit(1)
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -533,6 +652,14 @@ proc main() =
     cmdKill(cmdArgs)
   of "ps":
     cmdPs()
+  of "create":
+    cmdCreate(cmdArgs)
+  of "start":
+    cmdStart(cmdArgs)
+  of "state":
+    cmdState(cmdArgs)
+  of "delete":
+    cmdDelete(cmdArgs)
   else:
     stderr.writeLine("ferrite: unknown command: ", cmd)
     printUsage()

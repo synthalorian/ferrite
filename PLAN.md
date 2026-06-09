@@ -135,12 +135,17 @@ Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — ed
 **Goal:** Phase 8: OCI runtime spec compatibility layer
 
 **Deliverables:**
-- [ ] Core implementation
-- [ ] Tests
-- [ ] Documentation update
+- [x] Core implementation (`src/ferrite/oci.nim`, updated `src/ferrite.nim`)
+- [x] Tests (`tests/test_oci.nim`)
+- [x] Documentation update (`docs/phase8.md`, `README.md`)
 
 **Notes:**
-- 
+- Implemented `parseOciConfig`, `validateBundle`, `ociCreate`, `ociStart`, `ociState`, `ociDelete`, `ociKill`, `ociListStates`
+- Supports OCI bundle format: `config.json` + `rootfs/`
+- Parses process, root, hostname, linux namespaces, linux resources (cgroups), mounts
+- OCI state output in spec-compliant JSON format
+- New CLI commands: `create`, `start`, `state`, `delete`
+- Partial compatibility: create/start split is simplified (fork happens on start, not create) 
 
 ---
 

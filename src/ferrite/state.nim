@@ -75,7 +75,7 @@ proc ensureStateDir(): string =
       if not dirExists(result):
         createDir(result)
 
-proc statePath(id: string): string =
+proc statePath*(id: string): string =
   ensureStateDir() / id & ".json"
 
 proc nsSetToSeq(nss: set[Namespace]): seq[string] =
