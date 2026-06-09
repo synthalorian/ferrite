@@ -15,7 +15,7 @@
 - [x] **Phase 3**: cgroups v2 resource limiting (`cpu`, `memory`, `pids`)
 - [x] **Phase 4**: Process lifecycle management (init, reap)
 - [x] **Phase 5**: Self-monitoring (memory fragmentation, inode exhaustion)
-- [ ] **Phase 6**: Graceful self-destruction at resource limits
+- [x] **Phase 6**: Graceful self-destruction at resource limits
 - [ ] **Phase 7**: CLI (`run`, `exec`, `kill`, `ps`)
 - [ ] **Phase 8**: OCI runtime spec compatibility (partial)
 

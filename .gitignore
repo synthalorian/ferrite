@@ -13,3 +13,5 @@ htmldocs/
 /tests/test_rootfs
 /tests/test_cgroups
 /tests/test_lifecycle
+/tests/test_monitor
+/tests/test_destruction
