@@ -6,7 +6,7 @@
 #
 # Requires root or CAP_SYS_ADMIN for namespace-related tests.
 
-import std/[os, strutils, json, unittest, times, sequtils]
+import std/[os, strutils, json, unittest, times, sequtils, posix]
 import ferrite/oci
 import ferrite/state
 import ferrite/namespaces
