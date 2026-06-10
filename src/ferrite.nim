@@ -3,7 +3,7 @@
 # Phase 7 CLI: run, exec, kill, ps
 # Phase 1-6: namespaces, rootfs, cgroups, lifecycle, monitoring, self-destruction
 
-import std/[os, strutils, posix, times]
+import std/[os, strutils, posix, json]
 import ferrite/namespaces
 import ferrite/rootfs
 import ferrite/cgroups

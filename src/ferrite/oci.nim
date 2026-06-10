@@ -15,14 +15,14 @@
 #
 # Pure Nim — no external dependencies beyond posix and linux headers.
 
-import std/[os, strutils, json, times, sequtils]
+import std/[os, strutils, json]
 
 when defined(linux):
   import std/posix
 else:
   {.error: "ferrite requires Linux".}
 
-import namespaces, rootfs, cgroups, lifecycle, state, destruction
+import namespaces, rootfs, cgroups, state
 
 # ---------------------------------------------------------------------------
 # Constants

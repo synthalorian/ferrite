@@ -10,7 +10,7 @@
 #   let one = loadContainerState("ferrite-abc123")
 #   removeContainerState("ferrite-abc123")
 
-import std/[os, strutils, parseutils, times, json, sequtils]
+import std/[os, strutils, times, json, sequtils]
 
 when defined(linux):
   import std/posix

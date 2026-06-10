@@ -1,5 +1,5 @@
 # Package
-version       = "0.1.0"
+version       = "1.0.0"
 author        = "synth"
 description   = "Minimal container runtime from scratch"
 license       = "MIT"
