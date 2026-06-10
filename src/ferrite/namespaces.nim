@@ -302,7 +302,7 @@ proc currentNamespaces*(): seq[string] =
 proc hostname*(): string =
   ## Get the current hostname (UTS namespace).
   var buf: array[256, char]
-  if gethostname(addr buf[0], buf.len.cint) != 0:
+  if gethostname(cast[cstring](addr buf[0]), buf.len.cint) != 0:
     raiseOSError(osLastError())
   result = $cast[cstring](addr buf[0])
 
