@@ -1,3 +1,5 @@
+![ferrite](.github/preview.png)
+
 # ferrite
 
 > Minimal container runtime from scratch. Namespaces, cgroups v2, overlayfs — educational but functional. Logs its own decay and self-destructs gracefully.
