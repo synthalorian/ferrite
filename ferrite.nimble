@@ -2,7 +2,7 @@
 version       = "1.0.0"
 author        = "synth"
 description   = "Minimal container runtime from scratch"
-license       = "MIT"
+license       = "Apache-2.0"
 srcDir        = "src"
 bin           = @["ferrite"]
 

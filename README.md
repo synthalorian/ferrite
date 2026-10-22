@@ -137,7 +137,7 @@ See `PLAN.md`, `docs/phase1.md`, `docs/phase2.md`, and `docs/phase3.md` for deta
 
 ## License
 
-MIT
+Apache-2.0, see [LICENSE](LICENSE).
 
 ---
 
