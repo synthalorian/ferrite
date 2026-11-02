@@ -17,3 +17,4 @@ htmldocs/
 /tests/test_destruction
 /tests/test_cli
 /tests/test_oci
+.omo/
